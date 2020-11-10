@@ -40,8 +40,6 @@ func main() {
 
 	repo := NewPostgresRepository(db)
 
-	tokenService := &TokenService{repo}
-
 	// Create a new service. Optionally include some options here.
 	service := micro.NewService(
 		micro.Name("shippy.service.user"),
@@ -52,7 +50,7 @@ func main() {
 	service.Init()
 
 	// Register handler
-	if err := pb.RegisterUserServiceHandler(service.Server(), &handler{repo, tokenService}); err != nil {
+	if err := pb.RegisterUserServiceHandler(service.Server(), &handler{repo}); err != nil {
 		log.Panic(err)
 	}
 
