@@ -3,13 +3,20 @@ package main
 
 import (
 	"context"
+	"errors"
 
 	pb "github.com/chanho3114/shippy-service-user/proto/user"
 	"golang.org/x/crypto/bcrypt"
 )
 
+type authable interface {
+	Decode(token string) (*CustomClaims, error)
+	Encode(user *pb.User) (string, error)
+}
+
 type handler struct {
 	repository   Repository
+	tokenService authable
 }
 
 func (s *handler) Get(ctx context.Context, req *pb.User, res *pb.Response) error {
@@ -36,6 +43,25 @@ func (s *handler) GetAll(ctx context.Context, req *pb.Request, res *pb.Response)
 	return nil
 }
 
+func (s *handler) Auth(ctx context.Context, req *pb.User, res *pb.Token) error {
+	user, err := s.repository.GetByEmail(ctx, req.Email)
+	if err != nil {
+		return err
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
+		return err
+	}
+
+	token, err := s.tokenService.Encode(req)
+	if err != nil {
+		return err
+	}
+
+	res.Token = token
+	return nil
+}
+
 func (s *handler) Create(ctx context.Context, req *pb.User, res *pb.Response) error {
 	hashedPass, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
@@ -54,3 +80,16 @@ func (s *handler) Create(ctx context.Context, req *pb.User, res *pb.Response) er
 	return nil
 }
 
+func (s *handler) ValidateToken(ctx context.Context, req *pb.Token, res *pb.Token) error {
+	claims, err := s.tokenService.Decode(req.Token)
+	if err != nil {
+		return err
+	}
+
+	if claims.User.Id == "" {
+		return errors.New("invalid user")
+	}
+
+	res.Valid = true
+	return nil
+}
