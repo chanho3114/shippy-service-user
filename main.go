@@ -12,8 +12,8 @@ const schema = `
 		id varchar(36) not null,
 		name varchar(125) not null,
 		email varchar(225) not null unique,
-		password varchar(225) not null,
 		company varchar(125),
+		password varchar(225) not null,
 		primary key (id)
 	);
 `
@@ -36,7 +36,9 @@ func main() {
 	// Run schema query on start-up, as we're using "create if not exists"
 	// this will only be ran once. In order to create updates, you'll need to
 	// use a migrations library
+	log.Println("Before db.MustExec(schema)")
 	db.MustExec(schema)
+	log.Println("After db.MustExec(schema)")
 
 	repo := NewPostgresRepository(db)
 

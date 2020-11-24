@@ -3,6 +3,7 @@ package main
 
 import (
 	"context"
+	"log"
 
 	pb "github.com/chanho3114/shippy-service-user/proto/user"
 	"github.com/jmoiron/sqlx"
@@ -69,11 +70,18 @@ func UnmarshalUser(user *User) *pb.User {
 }
 
 func (r *PostgresRepository) GetAll(ctx context.Context) ([]*User, error) {
-	users := make([]*User, 0)
-	if err := r.db.GetContext(ctx, users, "select * from users"); err != nil {
+	//users := make([]*User, 0)
+	var users []*User
+
+	if err := r.db.SelectContext(ctx, &users, "select * from users"); err != nil {
 		return users, err
 	}
-
+	/*
+		if err := r.db.GetContext(ctx, &users, "select * from users"); err != nil {
+			log.Printf("shippy-service-user/(r *PostgresRepository) GetAll : %v", users)
+			return users, err
+		}
+	*/
 	return users, nil
 }
 
@@ -88,6 +96,7 @@ func (r *PostgresRepository) Get(ctx context.Context, id string) (*User, error) 
 
 func (r *PostgresRepository) Create(ctx context.Context, user *User) error {
 	user.ID = uuid.NewV4().String()
+	log.Printf("(r *PostgresRepository) Create/user.ID : %v", user.ID)
 	query := "insert into users (id, name, email, company, password) values ($1, $2, $3, $4, $5)"
 	_, err := r.db.ExecContext(ctx, query, user.ID, user.Name, user.Email, user.Company, user.Password)
 	return err
@@ -95,9 +104,15 @@ func (r *PostgresRepository) Create(ctx context.Context, user *User) error {
 
 func (r *PostgresRepository) GetByEmail(ctx context.Context, email string) (*User, error) {
 	query := "select * from users where email = $1"
-	var user *User
-	if err := r.db.GetContext(ctx, &user, query, email); err != nil {
+	var users []*User
+
+	if err := r.db.SelectContext(ctx, &users, query, email); err != nil {
 		return nil, err
 	}
-	return user, nil
+	/*
+		if err := r.db.GetContext(ctx, &user, query, email); err != nil {
+			return nil, err
+		}
+	*/
+	return users[0], nil
 }
