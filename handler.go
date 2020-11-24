@@ -4,6 +4,7 @@ package main
 import (
 	"context"
 	"errors"
+	"log"
 
 	pb "github.com/chanho3114/shippy-service-user/proto/user"
 	"golang.org/x/crypto/bcrypt"
@@ -33,11 +34,13 @@ func (s *handler) Get(ctx context.Context, req *pb.User, res *pb.Response) error
 
 func (s *handler) GetAll(ctx context.Context, req *pb.Request, res *pb.Response) error {
 	results, err := s.repository.GetAll(ctx)
+	log.Printf("shippy-service-user/(s *handler) GetAll results: %v", results)
 	if err != nil {
 		return err
 	}
 
 	users := UnmarshalUserCollection(results)
+	log.Printf("shippy-service-user/(s *handler) GetAll users: %v", users)
 	res.Users = users
 
 	return nil
@@ -69,6 +72,7 @@ func (s *handler) Create(ctx context.Context, req *pb.User, res *pb.Response) er
 	}
 
 	req.Password = string(hashedPass)
+	log.Printf("handler.go/(s *handler) Create/req.Password : %s", req.Password)
 	if err := s.repository.Create(ctx, MarshalUser(req)); err != nil {
 		return err
 	}

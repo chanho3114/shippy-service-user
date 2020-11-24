@@ -20,6 +20,7 @@ require (
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/kevinburke/ssh_config v0.0.0-20201106050909-4977a11b4351 // indirect
 	github.com/lib/pq v1.8.0
+	github.com/lucas-clemente/quic-go v0.19.2 // indirect
 	github.com/micro/go-micro/v2 v2.9.1
 	github.com/miekg/dns v1.1.35 // indirect
 	github.com/nats-io/jwt v1.2.0 // indirect
